@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Tic-Tac-Toe AI</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f2f2f2;
+            margin-top: 40px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #status {
+            font-size: 20px;
+            margin: 20px;
+            font-weight: bold;
+        }
+
+        .board {
+            width: 300px;
+            height: 300px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+        }
+
+        .cell {
+            background-color: white;
+            border: 2px solid #333;
+            font-size: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cell:hover {
+            background-color: #ddd;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Tic-Tac-Toe AI</h1>
+
+    <p id="status">Your Turn - You are X</p>
+
+    <div class="board">
+        <div class="cell" onclick="playerMove(0)"></div>
+        <div class="cell" onclick="playerMove(1)"></div>
+        <div class="cell" onclick="playerMove(2)"></div>
+
+        <div class="cell" onclick="playerMove(3)"></div>
+        <div class="cell" onclick="playerMove(4)"></div>
+        <div class="cell" onclick="playerMove(5)"></div>
+
+        <div class="cell" onclick="playerMove(6)"></div>
+        <div class="cell" onclick="playerMove(7)"></div>
+        <div class="cell" onclick="playerMove(8)"></div>
+    </div>
+
+    <button onclick="resetGame()">Restart Game</button>
+
+
+    <script>
+
+        // Empty board
+        let board = ["", "", "", "", "", "", "", ""];
+
+        let gameOver = false;
+
+        // Player move
+        function playerMove(index) {
+
+            if (board[index] != "" || gameOver) {
+                return;
+            }
+
+            board[index] = "X";
+
+            displayBoard();
+
+            if (checkWinner("X")) {
+                document.getElementById("status").innerText =
+                    "You Win!";
+                gameOver = true;
+                return;
+            }
+
+            if (isDraw()) {
+                document.getElementById("status").innerText =
+                    "It's a Draw!";
+                gameOver = true;
+                return;
+            }
+
+            document.getElementById("status").innerText =
+                "AI is thinking...";
+
+            // AI move
+            setTimeout(aiMove, 500);
+        }
+
+
+        // AI move
+        function aiMove() {
+
+            let bestScore = -Infinity;
+            let bestMove;
+
+            for (let i = 0; i < 9; i++) {
+
+                if (board[i] == "") {
+
+                    board[i] = "O";
+
+                    let score = minimax(board, 0, false);
+
+                    board[i] = "";
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = i;
+                    }
+                }
+            }
+
+            board[bestMove] = "O";
+
+            displayBoard();
+
+            if (checkWinner("O")) {
+
+                document.getElementById("status").innerText =
+                    "AI Wins!";
+
+                gameOver = true;
+                return;
+            }
+
+            if (isDraw()) {
+
+                document.getElementById("status").innerText =
+                    "It's a Draw!";
+
+                gameOver = true;
+                return;
+            }
+
+            document.getElementById("status").innerText =
+                "Your Turn - You are X";
+        }
+
+
+        // Minimax Algorithm
+        function minimax(board, depth, isMaximizing) {
+
+            if (checkWinner("O")) {
+                return 10 - depth;
+            }
+
+            if (checkWinner("X")) {
+                return depth - 10;
+            }
+
+            if (isDraw()) {
+                return 0;
+            }
+
+
+            if (isMaximizing) {
+
+                let bestScore = -Infinity;
+
+                for (let i = 0; i < 9; i++) {
+
+                    if (board[i] == "") {
+
+                        board[i] = "O";
+
+                        let score =
+                            minimax(board, depth + 1, false);
+
+                        board[i] = "";
+
+                        bestScore =
+                            Math.max(bestScore, score);
+                    }
+                }
+
+                return bestScore;
+
+            } else {
+
+                let bestScore = Infinity;
+
+                for (let i = 0; i < 9; i++) {
+
+                    if (board[i] == "") {
+
+                        board[i] = "X";
+
+                        let score =
+                            minimax(board, depth + 1, true);
+
+                        board[i] = "";
+
+                        bestScore =
+                            Math.min(bestScore, score);
+                    }
+                }
+
+                return bestScore;
+            }
+        }
+
+
+        // Check winner
+        function checkWinner(player) {
+
+            const winningPatterns = [
+
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+
+            for (let pattern of winningPatterns) {
+
+                if (
+                    board[pattern[0]] == player &&
+                    board[pattern[1]] == player &&
+                    board[pattern[2]] == player
+                ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+
+        // Check draw
+        function isDraw() {
+
+            return board.every(cell => cell != "");
+        }
+
+
+        // Display board
+        function displayBoard() {
+
+            let cells =
+                document.querySelectorAll(".cell");
+
+            for (let i = 0; i < 9; i++) {
+
+                cells[i].innerText = board[i];
+            }
+        }
+
+
+        // Restart game
+        function resetGame() {
+
+            board =
+                ["", "", "", "", "", "", "", ""];
+
+            gameOver = false;
+
+            displayBoard();
+
+            document.getElementById("status").innerText =
+                "Your Turn - You are X";
+        }
+
+    </script>
+
+</body>
+</html>
